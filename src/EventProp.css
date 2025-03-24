@@ -1,0 +1,26 @@
+.eventContainer{
+    display: flex;
+    border: 3px solid black;
+    justify-content: space-between;
+}
+
+.info{
+    text-align: center;
+    text-wrap:wrap;
+    gap:10px;
+}
+#infoTitle{
+    align-self:flex-start;
+}
+#infoTime{
+    align-self:center;
+}
+#infoLoc{
+    align-self:flex-end;
+}
+
+.infoContainer{
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+}
