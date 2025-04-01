@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, redirect, url_for, session
+from flask import Flask, render_template, request, flash, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime,timedelta
 
@@ -23,19 +23,47 @@ class Schedule(db.Model):
     loc = db.Column(db.String(120))
 
 
-event = [[1, "A", "Math", "11 Feb 1980", "123 candy street", "123","vishwath.ram@gmail.com"],
-         [2, "B", "Physics", "17 Nov 1985", "234 apple street", "123","vishwath.ram@gmail.com"],
-         [3, "C", "Chemistry", "26 Mar 1976", "345 star apartments", "123","vishwath.ram@gmail.com"],
-         [4, "D", "Computer Science", "05 May 1984", "567 new street", "123","vishwath.ram@gmail.com"],
-         [5, "E", "English", "21 Oct 1982", "798 old apartments", "123","vishwath.ram@gmail.com"]]
 
-comment_no=0
+EVENTS = [
+    {"name": "Workshop on AI", "start": "2025-04-01 10:00:00", "loc": "Room 101"},
+    {"name": "Music Concert", "start": "2025-04-02 18:30:00", "loc": "Auditorium"}
+]
+
+@app.route('/event')
+def event_page():
+    return render_template('event.html', events=EVENTS)
+
+@app.route('/add_to_schedule', methods=['POST'])
+def add_to_schedule():
+    event_name = request.form['name']
+    event_datetime = request.form['start']
+    event_location = request.form['loc']
+
+    # Check if event is already scheduled
+    existing_event = Schedule.query.filter_by(name=event_name, start=event_datetime).first()
+    
+    if not existing_event:
+        new_event = Schedule(name=event_name, start=event_datetime, loc=event_location)
+        db.session.add(new_event)
+        db.session.commit()
+        message = "Event added successfully!"
+    else:
+        message = "Event already added."
+
+    return jsonify({"message": message})
+
 
 @app.route("/")
 def home():
-    return render_template("schedule.html")
+    return render_template("ind.html")
 
+@app.route("/route")
+def route():
+    return render_template('route.html')
 
+@app.route("/event")
+def event():
+    return render_template('event.html')
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():

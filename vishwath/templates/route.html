@@ -10,6 +10,13 @@
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
 		<link rel="stylesheet" href="..\static\styles.css">
 		<title>UF Student Scheduling System</title>
+        <title>Bus Route Selector</title>
+        <script>
+            function updateMap() {
+                var route = document.getElementById("routeSelector").value;
+                document.getElementById("mapImage").src = "/static/" + route;
+            }
+        </script>
 	</head>
 <body>
 <div style="height:13px; background:#3366ff;"></div>
@@ -28,50 +35,28 @@
 		 <div class="offset-lg-1 col-lg-10" style="min-height: 400px;"> <!-- background:yellow;" -->
 		    <div class="card bg-secondary text-light mb-3">
                     <div class="card-body bg-secondary text-light mb-3">
-                    <h1>Schedule:</h1>
+                    <h1>Select a Bus Route:</h1>
                     </div>
                 <div class="card-body bg-dark" >
 					{% block content %}
                 <br>
-				<table class="table table-striped table-hover" width="1000" border="S" align="center">
-                    <thead class="thead-dark">
-                    <tr>
-                        <th>Name</th>
-                        <th>Date/Time</th>
-                        <th>Location</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
-                    </tr>
-                    </thead>
-					<tbody style="background-color:#FFFFFF;">
-					<form action="#" method="POST" >
-						{% for schedule in schedule %}
-						<tr>
-							<td>{{ schedule.name }}</td>
-                            <td>{{ schedule.start }}</td>
-                            <td>{{ schedule.loc }}</td>
-							<td>
-                                <a href="{{ url_for('edit', id=schedule.id) }}" class="btn btn-warning btn-block col-lg-8">Edit</a>
-							</td>
-                            <td>
-                                <a href="{{ url_for('delete', id=schedule.id) }}" class="btn btn-warning btn-block col-lg-8" >Delete</a>
-                            </td>
-						</tr>
-                    	{% endfor %}
-					</form>
-					</tbody>
-				</table>
+                <select id="routeSelector" onchange="updateMap()">
+                    <option value="r1.png">Route 1</option>
+                    <option value="r3.png">Route 3</option>
+                    <option value="r5.png">Route 5</option>
+                </select>
+                <br><br>
+                <img id="mapImage" src="/static/r1.png" alt="Bus Route Map" width="600">
+
 				<br>
-					<a href="{{ url_for('add') }}" class="btn btn-success btn-block col-lg-4">
-		 				<i class="fas fa-user-plus"></i> Add </i>
-		 			</a>
+
                 </div>
 				{% endblock %}
 				<div class="container"><br>
 					<div class="row">
 					<div class="col-lg-3 mb-2">
-					 <a href="{{ url_for('route') }}" class="btn btn-success btn-block">
-					 <i class="fas fa-map"> Map</i>
+					 <a href="{{ url_for('schedule') }}" class="btn btn-info btn-block">
+                        <i class="fas fa-calendar"> Schedule</i>
 					 </a>
 					 </div>
 						<div class="col-lg-3 mb-2">
