@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime,timedelta
 
 app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:postgres123@localhost/schedule'
+app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:SGBR2024@localhost/schedule'
 #app.config['SQLALCHEMY_DATABASE_URI']='postgresql://flbkyrsudtcdkb:137b6a0124d64919d1a04144413773b6e3d123f34684a96d225f7be6bb29e83c@ec2-54-90-13-87.compute-1.amazonaws.com:5432/dfdvq49i0u2lnr?sslmode=require'
 
 
