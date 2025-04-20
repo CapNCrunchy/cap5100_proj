@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime,timedelta
+import requests
 
 app=Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:SGBR2024@localhost/schedule'
@@ -13,7 +14,15 @@ app.secret_key="hello"
 app.permanent_session_lifetime= timedelta(minutes=5)
 
 
+import csv
 
+# A dictionary to quickly look up coordinates by location name
+location_coords = {}
+
+with open('static/BuildingInformation.csv', newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        location_coords[row['name']] = (row['latitude'], row['longitude'])
 
 class Schedule(db.Model):
     __tablename__ = "student"
@@ -88,6 +97,7 @@ def schedule():
 def generate():
     schedule = Schedule.query.order_by(Schedule.start).all()
     #put in api here
+    API_KEY = 
     routes =[]
     for i in range(len(schedule)-1):
         start_loc = schedule[i].loc
