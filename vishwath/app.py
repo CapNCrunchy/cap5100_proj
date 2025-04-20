@@ -84,6 +84,60 @@ def schedule():
     schedule = Schedule.query.order_by(Schedule.start).all()
     return render_template('schedule.html', schedule=schedule)
 
+@app.route("/generate",methods=['POST','GET'])
+def generate():
+    schedule = Schedule.query.order_by(Schedule.start).all()
+    #put in api here
+    routes =[]
+    for i in range(len(schedule)-1):
+        start_loc = schedule[i].loc
+        end_loc = schedule[i+1].loc
+
+        start_coords = location_coords.get(start_loc)
+        end_coords = location_coords.get(end_loc)
+        if start_coords and end_coords:
+            origin = f"{start_coords[0]},{start_coords[1]}"
+            destination = f"{end_coords[0]},{end_coords[1]}"
+
+            url = (
+                f"https://maps.googleapis.com/maps/api/directions/json?"
+                f"origin={origin}&destination={destination}&mode=transit&transit_mode=bus&key={API_KEY}"
+            )
+
+            response = requests.get(url)
+            data = response.json()
+
+            if data['status'] == 'OK':
+                steps = data['routes'][0]['legs'][0]['steps']
+                bus_steps = []
+                for step in steps:
+                    if step['travel_mode'] == 'TRANSIT':
+                        bus_info = {
+                            "line_name": step['transit_details']['line']['short_name'],
+                            "departure_stop": step['transit_details']['departure_stop']['name'],
+                            "arrival_stop": step['transit_details']['arrival_stop']['name']
+                        }
+                        bus_steps.append(bus_info)
+                routes.append({
+                "start_location": start_loc,
+                "bus_steps": bus_steps
+                })
+            else:
+                routes.append({
+                "start_location": start_loc,
+                "bus_steps": []
+                })  # No route found
+        else:
+            routes.append({
+                "start_location": start_loc,
+                "bus_steps": []
+            })  # Missing coordinates
+    routes.append({
+        "start_location": schedule[len(schedule)-1].loc,
+        "bus_steps": []
+    })
+    return render_template('generate.html', schedule=schedule,routes=routes)
+
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
     schedule = Schedule.query.get_or_404(id)
