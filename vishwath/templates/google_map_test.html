@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Flask Google Maps</title>
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>Bus Route selector</h3>
+
+        <div class="card-body bg-secondary text-light mb-3">
+            <p>Select a start point:</p>
+            <select id="route_start_point_selector" onchange="updateMap()">
+                {% for start_point in route_start_points %}
+                <option value='{{ start_point | tojson | safe }}'>{{ start_point.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="card-body bg-secondary text-light mb-3">
+            <p>Select an end point:</p>
+
+            <select id="route_end_point_selector" onchange="updateMap()">
+                {% for end_point in route_end_points %}
+                <option value='{{ end_point | tojson | safe }}'>{{ end_point.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+    <div id="map"></div>
+
+    <script>
+        var directionsService;
+        var directionsRenderer;
+        var route_start_point;
+        var route_end_point;
+        let map;
+        let busMarker;
+        let routePath = [];
+        let routeIndex = 0;
+        let intervalId;
+
+        function initMap() {
+            // UF location: 29.64670128913728, -82.35328368920925
+            const location = { lat: 29.6467, lng: -82.3532 };
+            route_start_point = JSON.parse(document.getElementById("route_start_point_selector").value);
+            route_end_point = JSON.parse(document.getElementById("route_end_point_selector").value);
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: location,
+            });
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true, // Set true if you want custom markers
+            });
+
+            const request = {
+                origin: route_start_point,
+                destination: route_end_point,
+                travelMode: google.maps.TravelMode.TRANSIT,
+                transitOptions: {
+                    modes: [google.maps.TransitMode.BUS], // Only show bus transit
+                },
+            };
+
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+
+                    // const busIcon = {
+                    //     url: "https://maps.google.com/mapfiles/kml/shapes/bus.png",
+                    //     scaledSize: new google.maps.Size(50, 50),
+                    // };
+                    // busMarker = new google.maps.Marker({
+                    //     position: {lat: 29.617224476508645, lng: -82.37446282465814},
+                    //     map: map,
+                    //     icon: busIcon,
+                    // });
+                    // busMarker.setMap(map);
+                } else {
+                    console.error('Directions request failed due to ' + status);
+                    alert('Could not retrieve route: ' + status);
+                }
+            });
+        }
+
+        function updateMap() {
+            route_start_point = JSON.parse(document.getElementById("route_start_point_selector").value);
+            route_end_point = JSON.parse(document.getElementById("route_end_point_selector").value);
+            const request = {
+                origin: { lat: route_start_point.lat, lng: route_start_point.lng },
+                destination: { lat: route_end_point.lat, lng: route_end_point.lng },
+                travelMode: google.maps.TravelMode.TRANSIT,
+                transitOptions: {
+                    modes: [google.maps.TransitMode.BUS], // Only show bus transit
+                },
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    const route = result.routes[0].overview_path;
+                    routePath = route;
+
+                    const busIcon = {
+                        url: "static/bus-svgrepo-com.svg",
+                        scaledSize: new google.maps.Size(30, 30),
+                        anchor: new google.maps.Point(20, 20),
+                    };
+                        markerStartIdx = Math.floor(Math.random() * (routePath.length/2));
+                        routeIndex = markerStartIdx
+                    busMarker = new google.maps.Marker({
+                        position: routePath[markerStartIdx],
+                        map: map,
+                        icon: busIcon,
+                        title: "Bus Location",
+                    });
+
+                    moveBus();
+                } else {
+                    console.error('Directions request failed due to ' + status);
+                    alert('Could not retrieve route: ' + status);
+                }
+            });
+
+        }
+
+        function moveBus() {
+            intervalId = setInterval(() => {
+                if (routeIndex < routePath.length) {
+                    busMarker.setPosition(routePath[routeIndex]);
+                    routeIndex++;
+                } else {
+                    clearInterval(intervalId);
+                }
+            }, 2000); // Update marker position
+        }
+
+    </script>
+
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAP4CzF-ARhN8mfbI2uxqDm5kTEAuROBr4&callback=initMap">
+        </script>
+</body>
+
+</html>

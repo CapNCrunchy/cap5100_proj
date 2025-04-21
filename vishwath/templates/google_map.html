@@ -1,0 +1,222 @@
+<html>
+<title>UF Student Scheduling System</title>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://kit.fontawesome.com/ec4472c738.js" crossorigin="anonymous"></script>
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+		integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+	<link rel="stylesheet" href="..\static\styles.css">
+	<title>UF Student Scheduling System</title>
+	<title>Bus Route Selector</title>
+	<style>
+		#map {
+			height: 500px;
+			width: 100%;
+		}
+	</style>
+</head>
+
+<body>
+	<div style="height:13px; background:#3366ff;"></div>
+	<header class="bg-dark text-white py-3">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<h1><img src="static/uf_logo_short.png" style="width: 150px; height: auto;"> UF Student Scheduling System</h1>
+				</div>
+			</div>
+		</div>
+	</header>
+	<div style="height:13px; background:#3366ff;"></div>
+	<section class="container py-2 mb-4">
+		<div class="row"> <!--style="min-height:50px; background:red;" -->
+			<div class="offset-lg-1 col-lg-10" style="min-height: 400px;"> <!-- background:yellow;" -->
+
+
+					<div class="card-body bg-secondary text-light mb-3">
+				<div style="display: flex;" class="card-body bg-dark">
+					{% block content %}
+
+					<br>
+					 <div style="flex: 1; padding:10px">
+						<p>Start:</p>
+						<select id="route_start_point_selector" onchange="updateMap()">
+							{% for start_point in route_start_points %}
+							<option value='{{ start_point | tojson | safe }}'>{{ start_point.name }}</option>
+							{% endfor %}
+						</select>
+					 </div>
+
+					 <div style="flex: 1; padding:10px">
+						<p>Destination: </p>
+
+						<select id="route_end_point_selector" onchange="updateMap()">
+							{% for end_point in route_end_points %}
+							<option value='{{ end_point | tojson | safe }}'>{{ end_point.name }}</option>
+							{% endfor %}
+						</select>
+
+					 </div>
+					</div>
+					<div id="map"></div>
+					<br>
+
+
+					{% endblock %}
+					<div class="container"><br>
+						<div class="row">
+							<div class="col-lg-3 mb-2">
+								<a href="{{ url_for('schedule') }}" class="btn btn-info btn-block">
+									<i class="fas fa-calendar"> Schedule</i>
+								</a>
+							</div>
+							<div class="col-lg-3 mb-2">
+								<a href="{{ url_for('event') }}" class="btn btn-danger btn-block">
+									<i class="fas fa-users"> UF Events</i>
+								</a>
+							</div>
+						</div>
+
+					</div>
+					<script>
+						var directionsService;
+						var directionsRenderer;
+						var route_start_point;
+						var route_end_point;
+						let map;
+						let busMarker;
+						let routePath = [];
+						let routeIndex = 0;
+						let intervalId;
+
+						function initMap() {
+							// UF location: 29.64670128913728, -82.35328368920925
+							const location = { lat: 29.6467, lng: -82.3532 };
+							route_start_point = JSON.parse(document.getElementById("route_start_point_selector").value);
+							route_end_point = JSON.parse(document.getElementById("route_end_point_selector").value);
+							map = new google.maps.Map(document.getElementById("map"), {
+								zoom: 12,
+								center: location,
+							});
+							directionsService = new google.maps.DirectionsService();
+							directionsRenderer = new google.maps.DirectionsRenderer({
+								map: map,
+								suppressMarkers: true,
+							});
+
+							const request = {
+								origin: route_start_point,
+								destination: route_end_point,
+								travelMode: google.maps.TravelMode.TRANSIT,
+								transitOptions: {
+									modes: [google.maps.TransitMode.BUS], // Only show bus transit
+								},
+							};
+
+
+							directionsService.route(request, (result, status) => {
+								if (status === 'OK') {
+									directionsRenderer.setDirections(result);
+
+									const busIcon = {
+										url: "static/bus-svgrepo-com.svg",
+										scaledSize: new google.maps.Size(30, 30),
+										anchor: new google.maps.Point(20, 20),
+									};
+									busMarker = new google.maps.Marker({
+										position: location,
+										icon: busIcon,
+										title: "Bus Location",
+									});
+									busMarker.setMap(null);
+
+								} else {
+									console.error('Directions request failed due to ' + status);
+									alert('Could not retrieve route: ' + status);
+								}
+							});
+						}
+
+						function updateMap() {
+							route_start_point = JSON.parse(document.getElementById("route_start_point_selector").value);
+							route_end_point = JSON.parse(document.getElementById("route_end_point_selector").value);
+							const request = {
+								origin: { lat: route_start_point.lat, lng: route_start_point.lng },
+								destination: { lat: route_end_point.lat, lng: route_end_point.lng },
+								travelMode: google.maps.TravelMode.TRANSIT,
+								transitOptions: {
+									modes: [google.maps.TransitMode.BUS], // Only show bus transit
+								},
+							};
+
+							directionsService.route(request, (result, status) => {
+								if (status === 'OK') {
+									directionsRenderer.setDirections(result);
+									const route = result.routes[0].overview_path;
+									routePath = route;
+
+									markerStartIdx = Math.floor(Math.random() * (routePath.length / 2));
+									routeIndex = markerStartIdx
+									busMarker.setPosition(routePath[markerStartIdx]);
+									busMarker.setMap(map);
+
+									moveBus();
+								} else {
+									console.error('Directions request failed due to ' + status);
+									alert('Could not retrieve route: ' + status);
+								}
+							});
+
+						}
+
+						function moveBus() {
+							intervalId = setInterval(() => {
+								if (routeIndex < routePath.length) {
+									busMarker.setPosition(routePath[routeIndex]);
+									routeIndex++;
+								} else {
+									clearInterval(intervalId);
+								}
+							}, 2500); // Update marker position
+						}
+
+					</script>
+
+					<script async defer
+						src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAP4CzF-ARhN8mfbI2uxqDm5kTEAuROBr4&callback=initMap">
+						</script>
+	</section>
+	<br>
+	<!-- main area end-->
+	<!-- footer begin--><br><br>
+	<footer class=" bg-dark text-white">
+		<div style="height:13px; background:#3366ff;"></div>
+		<br><br><br><br><br>
+		<div style="height:13px; background:#3366ff;"></div>
+	</footer>
+	<!-- footer end-->
+	<!-- <input class="custom-file-input" type="file" name="csvfile" required="required" id="fileselect">
+				<label for="fileselect" class="custom-file-label">Select File:</label>
+				<div id="file-upload-filename"></div>
+				-->
+
+
+
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+		integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+		crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+		integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+		crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+		integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+		crossorigin="anonymous"></script>
+	<script>
+		$('#year').text(new Date().getFullYear());
+	</script>
+</body>
+
+</html>
