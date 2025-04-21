@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime,timedelta
 
 app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:postgres123@localhost/schedule'
+app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:nasatlx@localhost/schedule'
 #app.config['SQLALCHEMY_DATABASE_URI']='postgresql://flbkyrsudtcdkb:137b6a0124d64919d1a04144413773b6e3d123f34684a96d225f7be6bb29e83c@ec2-54-90-13-87.compute-1.amazonaws.com:5432/dfdvq49i0u2lnr?sslmode=require'
 
 
@@ -64,6 +64,20 @@ def route():
 @app.route("/event")
 def event():
     return render_template('event.html')
+
+@app.route("/google_map")
+def google_map():
+    route_start_points = [
+        { "name": "Stoneridge Apartments", "lat": 29.620724476508645, "lng": -82.37546282465814 },
+        { "name": "Greenwich Green Apartments", "lat": 29.616989987441865, "lng": -82.37431589666387 },
+        { "name": "BLVD Apartments", "lat": 29.617468210928614, "lng": -82.37767025833176 },
+    ]
+    route_end_points = [
+        { "name": "Reitz Uinon", "lat": 29.6467124109277, "lng": -82.34800087571728 },
+        { "name": "CSE Building", "lat": 29.649290202565588, "lng": -82.3441214802752 },
+        { "name": "MAE Building A", "lat": 29.643444744944144, "lng": -82.34822478920941 },
+    ]
+    return render_template('google_map.html', route_start_points=route_start_points, route_end_points=route_end_points)
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():

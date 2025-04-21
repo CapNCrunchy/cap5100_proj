@@ -33,7 +33,7 @@
 	 <div class="container">
 	  <div class="row">
 	    <div class="col-md-12">
-	  	 <h1><i class="fas fa-university" style="color:#3366ff;"></i> UF Student Scheduling System</h1>
+	  	 <h1><img src="static/uf_logo_short.png" style="width: 150px; height: auto;"> UF Student Scheduling System</h1>
 		</div>
 	  </div>
 	 </div>
@@ -65,7 +65,7 @@
                             <td>{{ event.start }}</td>
                             <td>{{ event.loc }}</td>
                             <td>
-                                <button onclick="addToSchedule('{{ event.name }}', '{{ event.start }}', '{{ event.loc }}')">
+                                <button class="btn btn-success btn-block col-lg-4" onclick="addToSchedule('{{ event.name }}', '{{ event.start }}', '{{ event.loc }}')">
                                     Add
                                 </button>
                             </td>
