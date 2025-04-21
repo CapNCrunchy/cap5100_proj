@@ -111,7 +111,7 @@ def schedule():
 def generate():
     schedule = Schedule.query.order_by(Schedule.start).all()
     #put in api here
-    API_KEY = 
+    API_KEY =
     routes =[]
     for i in range(len(schedule)-1):
         start_loc = schedule[i].loc
