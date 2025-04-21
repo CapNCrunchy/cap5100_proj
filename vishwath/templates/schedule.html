@@ -66,6 +66,11 @@
 					<a href="{{ url_for('add') }}" class="btn btn-success btn-block col-lg-4">
 		 				<i class="fas fa-user-plus"></i> Add </i>
 		 			</a>
+					{% if schedule is not none and schedule|length >= 2 %}
+					 	<a href="{{ url_for('generate') }}" class="btn btn-success btn-block col-lg-4">
+							<i class="fas fa-business-time"></i> Generate Schedule</i>
+					  	</a>
+				  	{% endif %}
                 </div>
 				{% endblock %}
 				<div class="container"><br>

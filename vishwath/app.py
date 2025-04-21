@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime,timedelta
+import requests
 
 app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:nasatlx@localhost/schedule'
+app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:SGBR2024@localhost/schedule'
 #app.config['SQLALCHEMY_DATABASE_URI']='postgresql://flbkyrsudtcdkb:137b6a0124d64919d1a04144413773b6e3d123f34684a96d225f7be6bb29e83c@ec2-54-90-13-87.compute-1.amazonaws.com:5432/dfdvq49i0u2lnr?sslmode=require'
 
 
@@ -13,7 +14,15 @@ app.secret_key="hello"
 app.permanent_session_lifetime= timedelta(minutes=5)
 
 
+import csv
 
+# A dictionary to quickly look up coordinates by location name
+location_coords = {}
+
+with open('static/BuildingInformation.csv', newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        location_coords[row['name']] = (row['latitude'], row['longitude'])
 
 class Schedule(db.Model):
     __tablename__ = "student"
@@ -97,6 +106,61 @@ def add():
 def schedule():
     schedule = Schedule.query.order_by(Schedule.start).all()
     return render_template('schedule.html', schedule=schedule)
+
+@app.route("/generate",methods=['POST','GET'])
+def generate():
+    schedule = Schedule.query.order_by(Schedule.start).all()
+    #put in api here
+    API_KEY = 
+    routes =[]
+    for i in range(len(schedule)-1):
+        start_loc = schedule[i].loc
+        end_loc = schedule[i+1].loc
+
+        start_coords = location_coords.get(start_loc)
+        end_coords = location_coords.get(end_loc)
+        if start_coords and end_coords:
+            origin = f"{start_coords[0]},{start_coords[1]}"
+            destination = f"{end_coords[0]},{end_coords[1]}"
+
+            url = (
+                f"https://maps.googleapis.com/maps/api/directions/json?"
+                f"origin={origin}&destination={destination}&mode=transit&transit_mode=bus&key={API_KEY}"
+            )
+
+            response = requests.get(url)
+            data = response.json()
+
+            if data['status'] == 'OK':
+                steps = data['routes'][0]['legs'][0]['steps']
+                bus_steps = []
+                for step in steps:
+                    if step['travel_mode'] == 'TRANSIT':
+                        bus_info = {
+                            "line_name": step['transit_details']['line']['short_name'],
+                            "departure_stop": step['transit_details']['departure_stop']['name'],
+                            "arrival_stop": step['transit_details']['arrival_stop']['name']
+                        }
+                        bus_steps.append(bus_info)
+                routes.append({
+                "start_location": start_loc,
+                "bus_steps": bus_steps
+                })
+            else:
+                routes.append({
+                "start_location": start_loc,
+                "bus_steps": []
+                })  # No route found
+        else:
+            routes.append({
+                "start_location": start_loc,
+                "bus_steps": []
+            })  # Missing coordinates
+    routes.append({
+        "start_location": schedule[len(schedule)-1].loc,
+        "bus_steps": []
+    })
+    return render_template('generate.html', schedule=schedule,routes=routes)
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
