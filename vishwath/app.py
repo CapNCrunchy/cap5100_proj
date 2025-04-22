@@ -112,6 +112,9 @@ def generate():
     routes =[]
     start_coords = []
     end_coords = []
+
+    bus_route_all_legs = []
+
     for i in range(len(schedule)-1):
         start_loc = schedule[i].loc
         end_loc = schedule[i+1].loc
@@ -119,8 +122,8 @@ def generate():
         start_coords = location_coords.get(start_loc)
         end_coords = location_coords.get(end_loc)
 
-        bus_route_origin = {'lat': float(start_coords[0]) , 'lng': float(start_coords[1])} if start_coords else {}
-        bus_route_destination = {'lat': float(end_coords[0]), 'lng': float(end_coords[1])} if end_coords else {}
+        bus_route_all_legs.append(({'lat': float(start_coords[0]) , 'lng': float(start_coords[1])} if start_coords else {},
+                                  {'lat': float(end_coords[0]) , 'lng': float(end_coords[1])} if start_coords else {}))
 
         if start_coords and end_coords:
             origin = f"{start_coords[0]},{start_coords[1]}"
@@ -159,13 +162,13 @@ def generate():
                 "start_location": start_loc,
                 "bus_steps": []
             })  # Missing coordinates
+
     routes.append({
         "start_location": schedule[len(schedule)-1].loc,
         "bus_steps": []
     })
     return render_template('generate.html', schedule=schedule,routes=routes,
-                            route_origin=bus_route_origin,
-                            route_destination=bus_route_destination)
+                            route_legs=bus_route_all_legs)
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
