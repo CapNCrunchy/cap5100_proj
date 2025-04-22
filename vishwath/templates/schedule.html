@@ -1,108 +1,116 @@
-
-
 <html>
 <title>UF Student Scheduling System</title>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<script src="https://kit.fontawesome.com/ec4472c738.js" crossorigin="anonymous"></script>
-		<meta http-equiv="X-UA-Compatible" content="ie=edge">
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-		<link rel="stylesheet" href="..\static\styles.css">
-		<title>UF Student Scheduling System</title>
-	</head>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://kit.fontawesome.com/ec4472c738.js" crossorigin="anonymous"></script>
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+		integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+	<link rel="stylesheet" href="..\static\styles.css">
+	<title>UF Student Scheduling System</title>
+</head>
+
 <body>
-<div style="height:13px; background:#3366ff;"></div>
+	<div style="height:13px; background:#3366ff;"></div>
 	<header class="bg-dark text-white py-3">
-	 <div class="container">
-	  <div class="row">
-	    <div class="col-md-12">
-	  	 <h1>
-			<img src="static/uf_logo_short.png" style="width: 150px; height: auto;"> UF Student Scheduling System</h1>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<h1>
+						<a href="schedule">
+							<img src="static/uf_logo_short.png"
+								style="width: 150px; height: auto; text-decoration: none; color: inherit;">
+						</a>UF Student Scheduling System
+					</h1>
+				</div>
+			</div>
 		</div>
-	  </div>
-	 </div>
 	</header>
 	<div style="height:13px; background:#3366ff;"></div>
 	<section class="container py-2 mb-4">
 		<div class="row"> <!--style="min-height:50px; background:red;" -->
-		 <div class="offset-lg-1 col-lg-10" style="min-height: 400px;"> <!-- background:yellow;" -->
-		    <div class="card bg-secondary text-light mb-3">
-                    <div class="card-body bg-secondary text-light mb-3">
-                    <h1>Schedule:</h1>
-                    </div>
-                <div class="card-body bg-dark" >
-					{% block content %}
-                <br>
-				<table class="table table-striped table-hover" width="1000" border="S" align="center">
-                    <thead class="thead-dark">
-                    <tr>
-                        <th>Name</th>
-                        <th>Date/Time</th>
-                        <th>Location</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
-                    </tr>
-                    </thead>
-					<tbody style="background-color:#FFFFFF;">
-					<form action="#" method="POST" >
-						{% for schedule in schedule %}
-						<tr>
-							<td>{{ schedule.name }}</td>
-                            <td>{{ schedule.start }}</td>
-                            <td>{{ schedule.loc }}</td>
-							<td>
-                                <a href="{{ url_for('edit', id=schedule.id) }}" class="btn btn-warning btn-block col-lg-8">Edit</a>
-							</td>
-                            <td>
-                                <a href="{{ url_for('delete', id=schedule.id) }}" class="btn btn-warning btn-block col-lg-8" >Delete</a>
-                            </td>
-						</tr>
-                    	{% endfor %}
-					</form>
-					</tbody>
-				</table>
-				<br>
-					<a href="{{ url_for('add') }}" class="btn btn-success btn-block col-lg-4">
-		 				<i class="fas fa-user-plus"></i> Add </i>
-		 			</a>
-					{% if schedule is not none and schedule|length >= 2 %}
-					 	<a href="{{ url_for('generate') }}" class="btn btn-success btn-block col-lg-4">
-							<i class="fas fa-business-time"></i> Generate Schedule</i>
-					  	</a>
-				  	{% endif %}
-                </div>
-				{% endblock %}
-				<div class="container"><br>
-					<div class="row">
-					<div class="col-lg-3 mb-2">
-					 <a href="{{ url_for('route') }}" class="btn btn-success btn-block">
-					 <i class="fas fa-map"> Map</i>
-					 </a>
-					 </div>
-					<div class="col-lg-3 mb-2">
-					 <a href="{{ url_for('google_map') }}" class="btn btn-success btn-block">
-					 <i class="fas fa-bus"> Bus Tracker</i>
-					 </a>
-					 </div>
-						<div class="col-lg-3 mb-2">
-					 <a href="{{ url_for('event') }}" class="btn btn-danger btn-block">
-					 <i class="fas fa-users"> UF Events</i>
-					 </a>
-					 </div>
-						 </div>
-            </div>
-		   </div>
-		 </div>
+			<div class="offset-lg-1 col-lg-10" style="min-height: 400px;"> <!-- background:yellow;" -->
+				<div class="card bg-secondary text-light mb-3">
+					<div class="card-body bg-secondary text-light mb-1">
+						<h1>Schedule</h1>
+					</div>
+					<div class="card-body bg-dark">
+						{% block content %}
+						<br>
+						<table class="table table-striped table-hover" width="1000" border="S" align="center">
+							<thead class="thead-dark">
+								<tr>
+									<th>Name</th>
+									<th>Date/Time</th>
+									<th>Location</th>
+									<th>Edit</th>
+									<th>Delete</th>
+								</tr>
+							</thead>
+							<tbody style="background-color:#FFFFFF;">
+								<form action="#" method="POST">
+									{% for schedule in schedule %}
+									<tr>
+										<td>{{ schedule.name }}</td>
+										<td>{{ schedule.start }}</td>
+										<td>{{ schedule.loc }}</td>
+										<td>
+											<a href="{{ url_for('edit', id=schedule.id) }}"
+												class="btn btn-warning btn-block col-lg-8">Edit</a>
+										</td>
+										<td>
+											<a href="{{ url_for('delete', id=schedule.id) }}"
+												class="btn btn-warning btn-block col-lg-8">Delete</a>
+										</td>
+									</tr>
+									{% endfor %}
+								</form>
+							</tbody>
+						</table>
+						<br>
+								<a href="{{ url_for('add') }}" class="btn btn-success btn-block col-lg-4 mb-2">
+									<i class="fas fa-user-plus"></i> Add Event
+								</a>
+								{% if schedule is not none and schedule|length >= 2 %}
+								<a href="{{ url_for('generate') }}" class="btn btn-success btn-block col-lg-4 mb-2">
+									<i class="fas fa-business-time"></i> Generate Schedule
+								</a>
+								{% endif %}
+
+					</div>
+					{% endblock %}
+					<div class="container"><br>
+						<div class="row">
+							<div class="col-lg-3 mb-2">
+								<a href="{{ url_for('route') }}" class="btn btn-success btn-block">
+									<i class="fas fa-map"></i> Map
+								</a>
+							</div>
+							<div class="col-lg-3 mb-2">
+								<a href="{{ url_for('google_map') }}" class="btn btn-success btn-block">
+									<i class="fas fa-bus"></i> Bus Tracker
+								</a>
+							</div>
+							<div class="col-lg-3 mb-2">
+								<a href="{{ url_for('event') }}" class="btn btn-danger btn-block">
+									<i class="fas fa-users"></i> UF Events
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 	</section>
-<br>
-<!-- main area end-->
+	<br>
+	<!-- main area end-->
 	<!-- footer begin--><br><br>
-<footer class=" bg-dark text-white">
-	<div style="height:13px; background:#3366ff;"></div>
-<br><br><br><br><br>
+	<footer class=" bg-dark text-white">
 		<div style="height:13px; background:#3366ff;"></div>
-</footer>
+		<br><br><br><br><br>
+		<div style="height:13px; background:#3366ff;"></div>
+	</footer>
 	<!-- footer end-->
 	<!-- <input class="custom-file-input" type="file" name="csvfile" required="required" id="fileselect">
 				<label for="fileselect" class="custom-file-label">Select File:</label>
@@ -111,11 +119,18 @@
 
 
 
-	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+		integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+		crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+		integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+		crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+		integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+		crossorigin="anonymous"></script>
 	<script>
 		$('#year').text(new Date().getFullYear());
 	</script>
 </body>
+
 </html>

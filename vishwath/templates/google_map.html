@@ -9,6 +9,8 @@
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
 		integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
 	<link rel="stylesheet" href="..\static\styles.css">
+
+		<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 	<title>UF Student Scheduling System</title>
 	<title>Bus Route Selector</title>
 	<style>
@@ -25,7 +27,11 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-md-12">
-					<h1><img src="static/uf_logo_short.png" style="width: 150px; height: auto;"> UF Student Scheduling System</h1>
+					<h1>
+						<a href="schedule">
+						<img src="static/uf_logo_short.png" style="width: 150px; height: auto;">
+						</a>
+						UF Student Scheduling System</h1>
 				</div>
 			</div>
 		</div>
@@ -34,28 +40,33 @@
 	<section class="container py-2 mb-4">
 		<div class="row"> <!--style="min-height:50px; background:red;" -->
 			<div class="offset-lg-1 col-lg-10" style="min-height: 400px;"> <!-- background:yellow;" -->
-
-
-					<div class="card-body bg-secondary text-light mb-3">
+				<div class="card-body bg-secondary text-light mb-3">
 				<div style="display: flex;" class="card-body bg-dark">
 					{% block content %}
 
 					<br>
-					 <div style="flex: 1; padding:10px">
+					 <div style="flex: 1; padding:4px">
 						<p>Start:</p>
-						<select id="route_start_point_selector" onchange="updateMap()">
+						<select style="width: 300px" id="route_start_point_selector" class="form-control" onchange="updateMap()">
 							{% for start_point in route_start_points %}
+							{% if start_point.name == "Diamond Apartments"%}
+							<option value='{{ start_point | tojson | safe }}' selected="selected">{{ start_point.name }}</option>
+							{% else %}
 							<option value='{{ start_point | tojson | safe }}'>{{ start_point.name }}</option>
+							{% endif %}
 							{% endfor %}
 						</select>
 					 </div>
 
-					 <div style="flex: 1; padding:10px">
+					 <div style="flex: 1; padding:4px">
 						<p>Destination: </p>
-
-						<select id="route_end_point_selector" onchange="updateMap()">
-							{% for end_point in route_end_points %}
+						<select style="width: 300px" id="route_end_point_selector" class="form-control" onchange="updateMap()">
+							{% for end_point in route_start_points %}
+							{% if end_point.name == "Reitz Student Union" %}
+							<option value='{{ end_point | tojson | safe }}' selected="selected">{{ end_point.name }}</option>
+							{% else %}
 							<option value='{{ end_point | tojson | safe }}'>{{ end_point.name }}</option>
+							{% endif %}
 							{% endfor %}
 						</select>
 
@@ -70,17 +81,17 @@
 						<div class="row">
 							<div class="col-lg-3 mb-2">
 								<a href="{{ url_for('schedule') }}" class="btn btn-info btn-block">
-									<i class="fas fa-calendar"> Schedule</i>
+									<i class="fas fa-calendar"></i> Schedule
 								</a>
 							</div>
 							<div class="col-lg-3 mb-2">
 								<a href="{{ url_for('event') }}" class="btn btn-danger btn-block">
-									<i class="fas fa-users"> UF Events</i>
+									<i class="fas fa-users"></i> UF Events
 								</a>
 							</div>
 						</div>
-
 					</div>
+
 					<script>
 						var directionsService;
 						var directionsRenderer;
@@ -107,19 +118,6 @@
 								suppressMarkers: true,
 							});
 
-							const request = {
-								origin: route_start_point,
-								destination: route_end_point,
-								travelMode: google.maps.TravelMode.TRANSIT,
-								transitOptions: {
-									modes: [google.maps.TransitMode.BUS], // Only show bus transit
-								},
-							};
-
-
-							directionsService.route(request, (result, status) => {
-								if (status === 'OK') {
-									directionsRenderer.setDirections(result);
 
 									const busIcon = {
 										url: "static/bus-svgrepo-com.svg",
@@ -131,18 +129,14 @@
 										icon: busIcon,
 										title: "Bus Location",
 									});
-									busMarker.setMap(null);
 
-								} else {
-									console.error('Directions request failed due to ' + status);
-									alert('Could not retrieve route: ' + status);
-								}
-							});
+							updateMap();
 						}
 
 						function updateMap() {
 							route_start_point = JSON.parse(document.getElementById("route_start_point_selector").value);
 							route_end_point = JSON.parse(document.getElementById("route_end_point_selector").value);
+
 							const request = {
 								origin: { lat: route_start_point.lat, lng: route_start_point.lng },
 								destination: { lat: route_end_point.lat, lng: route_end_point.lng },
@@ -155,8 +149,22 @@
 							directionsService.route(request, (result, status) => {
 								if (status === 'OK') {
 									directionsRenderer.setDirections(result);
-									const route = result.routes[0].overview_path;
-									routePath = route;
+									// const route = result.routes[0].overview_path;
+									// routePath = route;
+
+									result.routes[0].legs.forEach(leg => {
+										leg.steps.forEach(step => {
+											if (step.travel_mode === "TRANSIT") {
+												const transitLine = step.polyline;
+												const decodedPath = google.maps.geometry.encoding.decodePath(transitLine.points);
+
+												decodedPath.forEach(latlng => {
+													routePath.push(latlng);
+												});
+											}
+										});
+									});
+
 
 									markerStartIdx = Math.floor(Math.random() * (routePath.length / 2));
 									routeIndex = markerStartIdx
@@ -180,11 +188,12 @@
 								} else {
 									clearInterval(intervalId);
 								}
-							}, 2500); // Update marker position
+							}, 1500); // Update marker position
 						}
 
 					</script>
 
+					<!-- ADD API KEY HERE -->
 					<script async defer
 						src="https://maps.googleapis.com/maps/api/js?key=API_KEY&callback=initMap">
 						</script>
@@ -216,6 +225,20 @@
 		crossorigin="anonymous"></script>
 	<script>
 		$('#year').text(new Date().getFullYear());
+	</script>
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+	<script>
+	  $(document).ready(function() {
+		$('#route_end_point_selector').select2({
+		  placeholder: 'Select or search for a location',
+		  allowClear: true
+		});
+		$('#route_start_point_selector').select2({
+		  placeholder: 'Select or search for a location',
+		  allowClear: true
+		});
+		$('select').select2();
+	  });
 	</script>
 </body>
 
