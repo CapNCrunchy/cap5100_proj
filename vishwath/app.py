@@ -39,9 +39,8 @@ class Schedule(db.Model):
 
 
 EVENTS = [
-    {"name": "Florida Blue Key Spring Tapping Banquet", "start": "2025-04-27 9:00:00", "loc": "Touchdown Terrace"},
-    {"name": "The Sedoctaves End of Year Show 2025", "start": "2025-04-27 11:00:00", "loc": "Auditorium"},
-    {"name": "Senior Thesis Film Showcase", "start": "2025-04-01 19:00:00", "loc": "Auditorium"}
+    {"name": "Workshop on AI", "start": "2025-04-01 10:00:00", "loc": "Room 101"},
+    {"name": "Music Concert", "start": "2025-04-02 18:30:00", "loc": "Auditorium"}
 ]
 
 @app.route('/event')
