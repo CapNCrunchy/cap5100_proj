@@ -34,7 +34,7 @@
 			<div class="offset-lg-1 col-lg-10" style="min-height: 400px;"> <!-- background:yellow;" -->
 				<div class="card bg-secondary text-light mb-3">
 					<div class="card-body bg-secondary text-light mb-3">
-						<h1>Schedule:</h1>
+						<h1>Schedule</h1>
 					</div>
 
 					<div class="card-body bg-dark">
@@ -45,6 +45,7 @@
 								{% for route in routes %}
 								<h3>{{ route.start_location }}</h3>
 								{% if route.bus_steps %}
+								<p id="leave-time-{{ route.route_id }}" style="margin: 10px; margin-left: 0px; padding: 10px; background-color: #0a1f44; border: 2px solid #153e75; border-radius: 8px; text-align: left; color: #ffffff;">Leave by </p>
 								{% for bus in route.bus_steps %}
 								Take bus {{ bus.line_name }} from {{ bus.departure_stop }} to {{ bus.arrival_stop }}
 								{% endfor %}
@@ -87,6 +88,10 @@
 				var directionsService;
 				// var directionsRenderer;
 				var all_legs = {{ route_legs | tojson }};
+				var event_times = {{ event_times | tojson }};
+				var routes_from_backend = {{ routes | tojson }};
+				console.log(routes_from_backend);
+
 				var route_start_point;
 				var route_end_point;
 				const route_colors = [
@@ -100,7 +105,7 @@
 					'#40E0D0', // Turquoise
 					'#FFA07A', // Light Salmon
 					'#00CED1'  // Dark Turquoise
-					];
+				];
 
 				let map;
 				// let busMarker;
@@ -123,30 +128,32 @@
 					});
 					directionsService = new google.maps.DirectionsService();
 
+					// var time_iter = 0;
 					for (const leg of all_legs) {
 
 						const directionsRenderer = new google.maps.DirectionsRenderer({
 							map: map,
 							suppressMarkers: true,
 							polylineOptions: {
-							strokeColor: route_colors[Math.floor(Math.random() * route_colors.length)],
-							strokeOpacity: 0.8,
-							strokeWeight: 6
-						}
+								strokeColor: route_colors[Math.floor(Math.random() * route_colors.length)],
+								strokeOpacity: 0.8,
+								strokeWeight: 6
+							}
 						});
 
-						route_start_point = leg[0];
-						route_end_point = leg[1];
-						console.log(route_start_point)
-						console.log(route_end_point)
+						route_start_point = leg[1];
+						route_end_point = leg[2];
 						const request = {
 							origin: { lat: route_start_point.lat, lng: route_start_point.lng },
 							destination: { lat: route_end_point.lat, lng: route_end_point.lng },
 							travelMode: google.maps.TravelMode.TRANSIT,
 							transitOptions: {
 								modes: [google.maps.TransitMode.BUS], // Only show bus transit
+								arrivalTime: new Date(event_times[leg[0]])
 							},
 						};
+						// console.log(time_iter)
+						// console.log(event_times[time_iter])
 
 						const busIcon = {
 							url: "static/bus-svgrepo-com.svg",
@@ -167,8 +174,8 @@
 								// const route = result.routes[0].overview_path;
 								// routePath = route;
 
-								result.routes[0].legs.forEach(leg => {
-									leg.steps.forEach(step => {
+								result.routes[0].legs.forEach(leg1 => {
+									leg1.steps.forEach(step => {
 										if (step.travel_mode === "TRANSIT") {
 											const transitLine = step.polyline;
 											const decodedPath = google.maps.geometry.encoding.decodePath(transitLine.points);
@@ -179,6 +186,13 @@
 										}
 									});
 								});
+
+								leaveBy = result.routes[0].legs[0].departure_time.text;
+								arriveBy = result.routes[0].legs[result.routes[0].legs.length - 1].arrival_time.text;
+								leave_time_id = "leave-time-" + leg[0]
+								document.getElementById(leave_time_id).textContent = `Leave by  ${leaveBy}, you should arrive by ${arriveBy}`;
+								console.log('arrive time: ' + event_times[leg[0]])
+								console.log('leave by: ' + leaveBy)
 
 								markerStartIdx = Math.floor(Math.random() * (routePath.length / 2));
 								routeIndex = markerStartIdx
@@ -198,9 +212,11 @@
 
 							} else {
 								console.error('Directions request failed due to ' + status);
-								alert('Could not retrieve route: ' + status);
+								// alert('Could not retrieve route: ' + status);
 							}
 						});
+
+						// time_iter = time_iter + 1;
 					}
 				}
 

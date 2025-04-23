@@ -113,21 +113,28 @@ def generate():
     start_coords = []
     end_coords = []
 
+    event_times = []
     bus_route_all_legs = []
 
     for i in range(len(schedule)-1):
         start_loc = schedule[i].loc
         end_loc = schedule[i+1].loc
-
         start_coords = location_coords.get(start_loc)
         end_coords = location_coords.get(end_loc)
+        if schedule[i].start:
+            event_times.append(schedule[i].start.strftime('%Y-%m-%dT%H:%M:%S'))
+        else:
+            event_times.append(datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
+        print(event_times)
 
-        bus_route_all_legs.append(({'lat': float(start_coords[0]) , 'lng': float(start_coords[1])} if start_coords else {},
-                                  {'lat': float(end_coords[0]) , 'lng': float(end_coords[1])} if start_coords else {}))
 
         if start_coords and end_coords:
             origin = f"{start_coords[0]},{start_coords[1]}"
             destination = f"{end_coords[0]},{end_coords[1]}"
+
+            bus_route_all_legs.append((i,
+                                    {'lat': float(start_coords[0]) , 'lng': float(start_coords[1])},
+                                    {'lat': float(end_coords[0]) , 'lng': float(end_coords[1])}))
 
             url = (
                 f"https://maps.googleapis.com/maps/api/directions/json?"
@@ -150,25 +157,33 @@ def generate():
                         bus_steps.append(bus_info)
                 routes.append({
                 "start_location": start_loc,
-                "bus_steps": bus_steps
+                "bus_steps": bus_steps,
+                "route_id": i,
                 })
             else:
                 routes.append({
                 "start_location": start_loc,
-                "bus_steps": []
+                "bus_steps": [],
+                    "route_id": i,
                 })  # No route found
         else:
             routes.append({
                 "start_location": start_loc,
-                "bus_steps": []
+                "bus_steps": [],
+                    "route_id": i,
             })  # Missing coordinates
+
+            # If location is not provided, just use the location of UF.
+            bus_route_all_legs.append((i, { "lat": 29.6467, "lng": -82.3532 }, { "lat": 29.6467, "lng": -82.3532 }))
+
 
     routes.append({
         "start_location": schedule[len(schedule)-1].loc,
-        "bus_steps": []
+        "bus_steps": [],
+        "route_id": len(schedule)-1,
     })
     return render_template('generate.html', schedule=schedule,routes=routes,
-                            route_legs=bus_route_all_legs)
+                            route_legs=bus_route_all_legs, event_times=event_times)
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
